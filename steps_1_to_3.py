@@ -89,4 +89,57 @@ for col in columns:
     else:
         pass
 
+########################################################################################
+########################################################################################
+# %%
+# Data Preparation and Cleaning for Job Placement Dataset:
+JOB = pd.read_csv('Placement_Data_Full_Class.csv')
+JOB.info()
+
+# %%
+# Turning necessary variables into categorical variables:
+cat_cols = ["gender" , "ssc_b", "hsc_b", "hsc_s", "degree_t",
+            "specialisation"]
+
+for col in cat_cols:
+    JOB[col] = JOB[col].astype('category')
+
+JOB.info()
+
+# %%
+# Dropping unnecessary columns:
+cols_by_name = ["salary"]
+
+cols_to_drop = [
+    c for c in cols_by_name
+    if c in JOB.columns
+]
+
+if cols_to_drop:
+    JOB =JOB.drop(columns=cols_to_drop)
+
+
+# %%
+# One-Hot Encoding categorical variables:
+one_hot_columns = ["gender","ssc_b", "hsc_b", "hsc_s", "degree_t", "specialisation",
+                   'status', 'workex']
+
+cols_to_encode = [c for c in one_hot_columns if c in JOB.columns]
+
+if cols_to_encode:
+    JOB = pd.get_dummies(JOB, columns=cols_to_encode)
+else:
+    pass 
+
+
+# %% 
+# Standardizing and Scaling numerical columns:
+columns = ["ssc_p", "hsc_p", "degree_p", "etest_p", "mba_p"]
+scaler = MinMaxScaler()
+
+for col in columns:
+    if col in JOB.columns:
+        JOB[[col]] = scaler.fit_transform(JOB[[col]])
+    else:
+        pass
 # %%

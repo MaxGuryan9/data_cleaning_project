@@ -1,7 +1,7 @@
 #%% [markdown]
 # # Step 1: Identify a question that the dataset can answer:
 # **College Completion Dataset:** \
-# Based on the amount of aid a school provides to students, both merit and financial, whether the students at that school are more likely to complete college?
+# Based on the amount of aid a school provides to students, both merit and financial, is the students at that school are more likely to complete college?
 
 # **Job Placement Dataset:** \
 # Is there a correlation between the performance on standardized tests and degree performance percentile and whether you have gotten a job or not? 
@@ -10,7 +10,7 @@
 # # Step 2: Independent Business Metric and Data Cleaning:
 # **College Completion Dataset:** 
 # - **Independent Business Metric:** \
-# `awards_per_value_region` = The number of awards per 100 full-time undergraduates compared to the region average. \ 
+# `awards_per_state_value` = The number of awards per 100 full-time undergraduates compared to the state average. \ 
 
 # **Job Placement Dataset:** 
 # - **Independent Business Metric:** \
@@ -28,8 +28,6 @@ COLLEGE = pd.read_csv('cc_institution_details.csv')
 COLLEGE.info()
 
 # %%
-
-# %%
 # Turning necessary variables into categorical variables:
 cat_cols = ['state', 'level', 'control']
 
@@ -38,29 +36,57 @@ for col in cat_cols:
 
 COLLEGE.info()
 
+# %%
 # Dropping unnecessary columns:
 cols_by_name = [
     "site", "long_x", "lat_y",
-    "med_sat_percentile", "med_sat_value", "endow_value", "basic"
+    "med_sat_percentile", "med_sat_value", "endow_value", "basic",
+    "endow_percentile", "unitid", "chronname", "city", "grad_100_value",
+    "grad_100_percentile", "grad_150_value", "grad_150_percentile"
 ]
 
 cols_by_index = COLLEGE.columns[34:63]
 
-COLLEGE = COLLEGE.drop(columns=cols_by_name + list(cols_by_index))
+cols_to_drop = [
+    c for c in cols_by_name + list(cols_by_index)
+    if c in COLLEGE.columns
+]
 
+if cols_to_drop:
+    COLLEGE = COLLEGE.drop(columns=cols_to_drop)
+
+# %%
 # Turning Boolean columns into 0s and 1s:
 bool_cols = ['hbcu', 'flagship']
 
 for col in bool_cols:
-    COLLEGE[col] = (COLLEGE[col] == "X").astype(int)
+    if col in COLLEGE.columns:
+        COLLEGE[col] = (COLLEGE[col] == "X").astype(int)
+    else:
+        pass 
 
+
+# %%
 # One-Hot Encoding categorical variables:
 one_hot_columns = ['level', 'control']
-COLLEGE = pd.get_dummies(COLLEGE, columns=one_hot_columns)
 
+cols_to_encode = [c for c in one_hot_columns if c in COLLEGE.columns]
+
+if cols_to_encode:
+    COLLEGE = pd.get_dummies(COLLEGE, columns=cols_to_encode)
+else:
+    pass 
+
+
+# %% 
 # Standardizing and Scaling numerical columns:
-columns = COLLEGE.columns[9:28]
+columns = COLLEGE.columns[5:28]
+scaler = MinMaxScaler()
+
 for col in columns:
-    COLLEGE[[col]] = MinMaxScaler().fit_transform(COLLEGE[[col]])
+    if col in COLLEGE.columns:
+        COLLEGE[[col]] = scaler.fit_transform(COLLEGE[[col]])
+    else:
+        pass
 
 # %%

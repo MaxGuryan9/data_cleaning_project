@@ -1,8 +1,7 @@
 #%% [markdown]
 # # Step 1: Identify a question that the dataset can answer:
 # **College Completion Dataset:** \
-# Based on the amount of aid a school provides to students, both merit and financial, is the students at that school are more likely to complete college?
-
+# Are the flagship universities the ones that are performing the best in terms of 
 # **Job Placement Dataset:** \
 # Is there a correlation between the performance on standardized tests and degree performance percentile and whether you have gotten a job or not? 
 
@@ -10,7 +9,8 @@
 # # Step 2: Independent Business Metric and Data Cleaning:
 # **College Completion Dataset:** 
 # - **Independent Business Metric:** \
-# `awards_per_state_value` = The number of awards per 100 full-time undergraduates compared to the state average. \ 
+# `high_award` = Whether or not the institution has a high award status (1 = high award status, 0 = low award status).
+# `high_award` is determined by whether the institution's awards per state value is above the median value of awards per state across all institutions.
 
 # **Job Placement Dataset:** 
 # - **Independent Business Metric:** \
@@ -79,8 +79,15 @@ else:
 
 
 # %% 
+high_threshold = COLLEGE['awards_per_state_value'].median()
+
+COLLEGE['high_award'] = (
+    COLLEGE['awards_per_state_value'] > high_threshold
+).astype(int)
+
+# %%
 # Standardizing and Scaling numerical columns:
-columns = COLLEGE.columns[5:28]
+columns = COLLEGE.columns[5:21]
 scaler = MinMaxScaler()
 
 for col in columns:
@@ -88,6 +95,11 @@ for col in columns:
         COLLEGE[[col]] = scaler.fit_transform(COLLEGE[[col]])
     else:
         pass
+# %%
+# Calculating Prevalence:
+total_rows = len(COLLEGE)
+prevalence = COLLEGE['high_award'].sum()/total_rows
+print(f"Prevalence of High Award Status: {prevalence:.2f}")
 
 ########################################################################################
 ########################################################################################
@@ -142,4 +154,9 @@ for col in columns:
         JOB[[col]] = scaler.fit_transform(JOB[[col]])
     else:
         pass
+# %%
+# Calculating Prevalence:
+total_rows = len(JOB)
+prevalence = JOB['status_Placed'].sum()/total_rows
+print(f"Prevalence of Employed Status: {prevalence:.2f}")
 # %%
